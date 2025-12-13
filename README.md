@@ -3,7 +3,7 @@
 A comprehensive performance tracking and analytics platform for insurance agencies.
 
 ## Features
-
+ 
 ### For Agents
 - **Daily Activity Logging**: Track dials, pick-ups, quotes, and applications
 - **Conversion Funnel Visualization**: See your performance metrics in real-time
