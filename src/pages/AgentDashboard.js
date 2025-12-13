@@ -124,8 +124,8 @@ function AgentDashboard() {
       </header>
 
       <div className="quick-actions">
-        <button onClick={() => setShowActivityModal(true)} className="btn-primary">
-          Log Activity
+        <button onClick={() => setShowAppModal(true)} className="btn-primary">
+          Submit a Sale
         </button>
         <button onClick={() => setShowAppModal(true)} className="btn-primary">
           Add Application
