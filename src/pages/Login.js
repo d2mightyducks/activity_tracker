@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './Auth.css';
 
 function Login() {
@@ -9,7 +9,6 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,13 +17,14 @@ function Login() {
 
     const { error } = await signIn(email, password);
 
-if (error) {
-  setError(error.message);
-  setLoading(false);
-} else {
-  // Force redirect
-  window.location.href = '/dashboard';
-}
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    } else {
+      window.location.href = '/dashboard';
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-card">
