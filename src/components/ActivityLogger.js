@@ -6,11 +6,11 @@ import './Modal.css';
 function ActivityLogger({ agentId, onClose, onSave }) {
   const [formData, setFormData] = useState({
     log_date: format(new Date(), 'yyyy-MM-dd'),
-    dials: 0,
-    pickups: 0,
-    quotes: 0,
-    talk_time_minutes: 0,
-    submitted_ap: 0
+    dials: '',
+    pickups: '',
+    quotes: '',
+    talk_time_hours: '',
+    talk_time_minutes: ''
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -27,9 +27,18 @@ function ActivityLogger({ agentId, onClose, onSave }) {
     setError('');
     setSaving(true);
 
+    // Convert hours and minutes to total minutes
+    const hours = parseInt(formData.talk_time_hours) || 0;
+    const minutes = parseInt(formData.talk_time_minutes) || 0;
+    const total_minutes = (hours * 60) + minutes;
+
     const dataToSave = {
       agent_id: agentId,
-      ...formData
+      log_date: formData.log_date,
+      dials: parseInt(formData.dials) || 0,
+      pickups: parseInt(formData.pickups) || 0,
+      quotes: parseInt(formData.quotes) || 0,
+      talk_time_minutes: total_minutes
     };
 
     // Try to update first (if log exists for this date), otherwise insert
@@ -45,7 +54,7 @@ function ActivityLogger({ agentId, onClose, onSave }) {
       // Update existing log
       result = await supabase
         .from('activity_logs')
-        .update(formData)
+        .update(dataToSave)
         .eq('id', existing.id);
     } else {
       // Insert new log
@@ -90,7 +99,8 @@ function ActivityLogger({ agentId, onClose, onSave }) {
                 type="number"
                 min="0"
                 value={formData.dials}
-                onChange={(e) => handleChange('dials', parseInt(e.target.value) || 0)}
+                onChange={(e) => handleChange('dials', e.target.value)}
+                placeholder="0"
               />
             </div>
 
@@ -100,46 +110,46 @@ function ActivityLogger({ agentId, onClose, onSave }) {
                 type="number"
                 min="0"
                 value={formData.pickups}
-                onChange={(e) => handleChange('pickups', parseInt(e.target.value) || 0)}
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Quotes</label>
-              <input
-                type="number"
-                min="0"
-                value={formData.quotes}
-                onChange={(e) => handleChange('quotes', parseInt(e.target.value) || 0)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Talk Time (minutes)</label>
-              <input
-                type="number"
-                min="0"
-                value={formData.talk_time_minutes}
-                onChange={(e) => handleChange('talk_time_minutes', parseInt(e.target.value) || 0)}
+                onChange={(e) => handleChange('pickups', e.target.value)}
+                placeholder="0"
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label>Submitted AP ($)</label>
+            <label>Quotes</label>
             <input
               type="number"
-              step="0.01"
               min="0"
-              value={formData.submitted_ap}
-              onChange={(e) => handleChange('submitted_ap', parseFloat(e.target.value) || 0)}
+              value={formData.quotes}
+              onChange={(e) => handleChange('quotes', e.target.value)}
+              placeholder="0"
             />
           </div>
 
-          <div className="info-message">
-            Note: Applications and Closed counts are automatically calculated when you add applications.
+          <div className="form-row">
+            <div className="form-group">
+              <label>Talk Time - Hours</label>
+              <input
+                type="number"
+                min="0"
+                value={formData.talk_time_hours}
+                onChange={(e) => handleChange('talk_time_hours', e.target.value)}
+                placeholder="0"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Talk Time - Minutes</label>
+              <input
+                type="number"
+                min="0"
+                max="59"
+                value={formData.talk_time_minutes}
+                onChange={(e) => handleChange('talk_time_minutes', e.target.value)}
+                placeholder="0"
+              />
+            </div>
           </div>
 
           <div className="modal-actions">
