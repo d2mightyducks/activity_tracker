@@ -18,14 +18,13 @@ function Login() {
 
     const { error } = await signIn(email, password);
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      navigate('/dashboard');
-    }
-  };
-
+if (error) {
+  setError(error.message);
+  setLoading(false);
+} else {
+  // Force redirect
+  window.location.href = '/dashboard';
+}
   return (
     <div className="auth-container">
       <div className="auth-card">
