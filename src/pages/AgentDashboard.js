@@ -125,10 +125,10 @@ function AgentDashboard() {
 
       <div className="quick-actions">
         <button onClick={() => setShowAppModal(true)} className="btn-primary">
-          Submit a Sale
+          Log Activity
         </button>
         <button onClick={() => setShowAppModal(true)} className="btn-primary">
-          Add Application
+          Submit a Sale
         </button>
       </div>
 
