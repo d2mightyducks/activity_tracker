@@ -63,7 +63,7 @@ function ApplicationEntry({ agentId, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Add Application</h2>
+          <h2>Submit a Sale</h2>
           <button onClick={onClose} className="close-btn">&times;</button>
         </div>
 
