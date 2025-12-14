@@ -26,12 +26,6 @@ function ApplicationEntry({ agentId, onClose, onSave }) {
     setError('');
     setSaving(true);
 
-    if (!formData.carrier) {
-      setError('Please select a carrier');
-      setSaving(false);
-      return;
-    }
-
     if (!formData.annualized_premium || parseFloat(formData.annualized_premium) <= 0) {
       setError('Please enter a valid premium amount');
       setSaving(false);
@@ -42,7 +36,7 @@ function ApplicationEntry({ agentId, onClose, onSave }) {
       agent_id: agentId,
       app_date: formData.app_date,
       client_name: formData.client_name || null,
-      carrier: formData.carrier,
+      carrier: formData.carrier || null, // Now optional
       annualized_premium: parseFloat(formData.annualized_premium),
       status: formData.status
     };
@@ -71,11 +65,24 @@ function ApplicationEntry({ agentId, onClose, onSave }) {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Application Date</label>
+            <label>Application Date *</label>
             <input
               type="date"
               value={formData.app_date}
               onChange={(e) => handleChange('app_date', e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Annualized Premium *</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.annualized_premium}
+              onChange={(e) => handleChange('annualized_premium', e.target.value)}
+              placeholder="2400.00"
               required
             />
           </div>
@@ -91,30 +98,16 @@ function ApplicationEntry({ agentId, onClose, onSave }) {
           </div>
 
           <div className="form-group">
-            <label>Carrier *</label>
+            <label>Carrier (Optional)</label>
             <select
               value={formData.carrier}
               onChange={(e) => handleChange('carrier', e.target.value)}
-              required
             >
-              <option value="">Select a carrier...</option>
+              <option value="">Select a carrier (optional)...</option>
               {CARRIERS.map(carrier => (
                 <option key={carrier} value={carrier}>{carrier}</option>
               ))}
             </select>
-          </div>
-
-          <div className="form-group">
-            <label>Annualized Premium *</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.annualized_premium}
-              onChange={(e) => handleChange('annualized_premium', e.target.value)}
-              placeholder="2400.00"
-              required
-            />
           </div>
 
           <div className="form-group">
@@ -138,7 +131,7 @@ function ApplicationEntry({ agentId, onClose, onSave }) {
               Cancel
             </button>
             <button type="submit" disabled={saving} className="btn-primary">
-              {saving ? 'Saving...' : 'Add Application'}
+              {saving ? 'Saving...' : 'Submit Sale'}
             </button>
           </div>
         </form>
