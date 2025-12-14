@@ -130,3 +130,33 @@
 .auth-links a:hover {
   text-decoration: underline;
 }
+/* Add to Auth.css */
+
+.signup-link-prominent {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.signup-link-prominent:hover {
+  text-decoration: underline;
+  color: #764ba2;
+}
+
+.link-option-card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 2px solid #e0e0e0;
+}
+
+.link-option-card p {
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.link-option-card strong {
+  color: #667eea;
+}
