@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import LinkAccount from './pages/LinkAccount';
 import AgentDashboard from './pages/AgentDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
@@ -49,6 +50,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/link-account" element={<LinkAccount />} />
           <Route
             path="/dashboard"
             element={
