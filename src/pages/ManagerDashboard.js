@@ -22,40 +22,36 @@ function ManagerDashboard() {
     }
   }, [profile]);
 
- const generateSignupLink = async () => {
-  // Check if manager already has a signup code
-  const { data: existing, error: fetchError } = await supabase
-    .from('manager_signup_codes')
-    .select('code')
-    .eq('manager_id', profile.id)
-    .eq('is_active', true)
-    .single();
-
-  let code;
-  if (existing && !fetchError) {
-    // Use existing code
-    code = existing.code;
-  } else {
-    // Generate new code only if one doesn't exist
-    code = Math.random().toString(36).substring(2, 10).toUpperCase();
-    
-    const { error: insertError } = await supabase
+  const generateSignupLink = async () => {
+    // Check if manager already has a signup code
+    const { data: existing, error: fetchError } = await supabase
       .from('manager_signup_codes')
-      .insert([{
-        manager_id: profile.id,
-        code: code,
-        is_active: true
-      }]);
-    
-    if (insertError) {
-      console.error('Error creating signup code:', insertError);
-      return;
-    }
-  }
+      .select('code')
+      .eq('manager_id', profile.id)
+      .eq('is_active', true)
+      .single();
 
-  const baseUrl = window.location.origin;
-  setSignupLink(`${baseUrl}/signup?code=${code}`);
-};
+    let code;
+    if (existing && !fetchError) {
+      // Use existing code
+      code = existing.code;
+    } else {
+      // Generate new code only if one doesn't exist
+      code = Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      const { error: insertError } = await supabase
+        .from('manager_signup_codes')
+        .insert([{
+          manager_id: profile.id,
+          code: code,
+          is_active: true
+        }]);
+      
+      if (insertError) {
+        console.error('Error creating signup code:', insertError);
+        return;
+      }
+    }
 
     const baseUrl = window.location.origin;
     setSignupLink(`${baseUrl}/signup?code=${code}`);
@@ -155,7 +151,7 @@ function ManagerDashboard() {
       const lastActivityDate = stat.lastActivity !== 'Never' ? new Date(stat.lastActivity) : null;
       const noRecentActivity = !lastActivityDate || lastActivityDate < threeDaysAgo;
       const noPolicies = stat.applications === 0;
-      const lowDials = stat.dials < 50; // Configurable threshold
+      const lowDials = stat.dials < 50;
       
       return noRecentActivity || noPolicies || lowDials;
     });
