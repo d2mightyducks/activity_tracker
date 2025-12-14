@@ -6,6 +6,7 @@ import ActivityLogger from '../components/ActivityLogger';
 import ApplicationEntry from '../components/ApplicationEntry';
 import ConversionFunnel from '../components/ConversionFunnel';
 import TodayStats from '../components/TodayStats';
+import ApplicationsList from '../components/ApplicationsList';
 import './Dashboard.css';
 
 function AgentDashboard() {
@@ -181,6 +182,11 @@ function AgentDashboard() {
       </div>
 
       <ConversionFunnel stats={monthStats} />
+
+      <ApplicationsList 
+        applications={applications} 
+        onEdit={fetchApplications}
+      />
 
       {showActivityModal && (
         <ActivityLogger
