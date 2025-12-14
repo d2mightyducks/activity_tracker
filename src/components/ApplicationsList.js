@@ -42,7 +42,7 @@ function ApplicationsList({ applications, onEdit }) {
           <tbody>
             {applications.map(app => (
               <tr key={app.id}>
-                <td>{format(new Date(app.app_date), 'MMM d, yyyy')}</td>
+                <td>{format(new Date(app.app_date + 'T00:00:00'), 'MMM d, yyyy')}</td>
                 <td>{app.client_name || <span className="empty-field">Not set</span>}</td>
                 <td>{app.carrier || <span className="empty-field">Not set</span>}</td>
                 <td>${parseFloat(app.annualized_premium).toLocaleString()}</td>
