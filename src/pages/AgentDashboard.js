@@ -7,6 +7,7 @@ import ApplicationEntry from '../components/ApplicationEntry';
 import ConversionFunnel from '../components/ConversionFunnel';
 import TodayStats from '../components/TodayStats';
 import ApplicationsList from '../components/ApplicationsList';
+import AgentSettings from '../components/AgentSettings';
 import './Dashboard.css';
 
 function AgentDashboard() {
@@ -16,6 +17,7 @@ function AgentDashboard() {
   const [loading, setLoading] = useState(true);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [showAppModal, setShowAppModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -38,7 +40,7 @@ function AgentDashboard() {
       .select('*')
       .eq('agent_id', profile.id)
       .order('log_date', { ascending: false })
-      .limit(90); // Last 90 days
+      .limit(90);
 
     if (data && !error) {
       setActivityLogs(data);
@@ -106,6 +108,11 @@ function AgentDashboard() {
     await signOut();
   };
 
+  const handleSettingsSave = () => {
+    setShowSettingsModal(false);
+    window.location.reload(); // Reload to reflect manager changes
+  };
+
   if (loading) {
     return <div className="loading">Loading your dashboard...</div>;
   }
@@ -120,6 +127,9 @@ function AgentDashboard() {
         <h1>Agent Dashboard</h1>
         <div className="header-right">
           <span className="user-name">Welcome, {profile.full_name}!</span>
+          <button onClick={() => setShowSettingsModal(true)} className="btn-secondary" style={{marginRight: '12px'}}>
+            Settings
+          </button>
           <button onClick={handleLogout} className="btn-secondary">Logout</button>
         </div>
       </header>
@@ -207,6 +217,13 @@ function AgentDashboard() {
             setShowAppModal(false);
             fetchData();
           }}
+        />
+      )}
+
+      {showSettingsModal && (
+        <AgentSettings
+          onClose={() => setShowSettingsModal(false)}
+          onSave={handleSettingsSave}
         />
       )}
     </div>
