@@ -6,7 +6,7 @@ import './Modal.css';
 function AgentSettings({ onClose, onSave }) {
   const { profile } = useAuth();
   const [managers, setManagers] = useState([]);
-  const [selectedManager, setSelectedManager] = useState(profile.manager_id || '');
+  const [selectedManager, setSelectedManager] = useState('');
   const [currentManager, setCurrentManager] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -14,10 +14,12 @@ function AgentSettings({ onClose, onSave }) {
 
   useEffect(() => {
     fetchManagers();
+    // Set the selected manager after profile loads
     if (profile.manager_id) {
+      setSelectedManager(profile.manager_id);
       fetchCurrentManager();
     }
-  }, []);
+  }, [profile.manager_id]);
 
   const fetchManagers = async () => {
     const { data, error } = await supabase
@@ -68,7 +70,9 @@ function AgentSettings({ onClose, onSave }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onMouseDown={(e) => {
+      if (e.target === e.currentTarget) onClose();
+    }}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Account Settings</h2>
