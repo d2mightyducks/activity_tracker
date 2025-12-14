@@ -27,24 +27,34 @@ function Signup() {
     }
   }, [signupCode]);
 
-  const validateSignupCode = async (code) => {
-    const { data, error } = await supabase
-      .from('manager_signup_codes')
-      .select('manager_id, profiles!inner(full_name, agency_name)')
-      .eq('code', code)
-      .eq('is_active', true)
-      .single();
+const validateSignupCode = async (code) => {
+  // First get the signup code
+  const { data: codeData, error: codeError } = await supabase
+    .from('manager_signup_codes')
+    .select('manager_id')
+    .eq('code', code)
+    .eq('is_active', true)
+    .single();
 
-    if (data && !error) {
-      setSelectedManager(data.manager_id);
-      setLinkingManager({
-        id: data.manager_id,
-        name: data.profiles.full_name,
-        agency: data.profiles.agency_name
-      });
-      setShowLinkOption(true);
-    }
-  };
+  if (!codeData || codeError) return;
+
+  // Then get the manager details
+  const { data: managerData, error: managerError } = await supabase
+    .from('profiles')
+    .select('full_name, agency_name')
+    .eq('id', codeData.manager_id)
+    .single();
+
+  if (managerData && !managerError) {
+    setSelectedManager(codeData.manager_id);
+    setLinkingManager({
+      id: codeData.manager_id,
+      name: managerData.full_name,
+      agency: managerData.agency_name
+    });
+    setShowLinkOption(true);
+  }
+};
 
   const fetchManagers = async () => {
     const { data, error } = await supabase
