@@ -74,7 +74,9 @@ function EditApplication({ application, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onMouseDown={(e) => {
+  if (e.target === e.currentTarget) onClose();
+}}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Edit Sale</h2>
