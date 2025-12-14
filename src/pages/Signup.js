@@ -12,6 +12,8 @@ function Signup() {
   const [selectedManager, setSelectedManager] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showLinkOption, setShowLinkOption] = useState(false);
+  const [linkingManager, setLinkingManager] = useState(null);
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -21,7 +23,6 @@ function Signup() {
   useEffect(() => {
     fetchManagers();
     if (signupCode) {
-      // If there's a signup code, find and pre-select the manager
       validateSignupCode(signupCode);
     }
   }, [signupCode]);
@@ -29,13 +30,19 @@ function Signup() {
   const validateSignupCode = async (code) => {
     const { data, error } = await supabase
       .from('manager_signup_codes')
-      .select('manager_id')
+      .select('manager_id, profiles!inner(full_name, agency_name)')
       .eq('code', code)
       .eq('is_active', true)
       .single();
 
     if (data && !error) {
       setSelectedManager(data.manager_id);
+      setLinkingManager({
+        id: data.manager_id,
+        name: data.profiles.full_name,
+        agency: data.profiles.agency_name
+      });
+      setShowLinkOption(true);
     }
   };
 
@@ -64,9 +71,13 @@ function Signup() {
       setError(error.message);
       setLoading(false);
     } else {
-      // Success - redirect to login
       navigate('/login');
     }
+  };
+
+  // NEW: Link existing account to manager
+  const handleLinkAccount = () => {
+    navigate(`/link-account?code=${signupCode}`);
   };
 
   return (
@@ -75,9 +86,22 @@ function Signup() {
         <h1>Insurance Tracker</h1>
         <h2>Agent Signup</h2>
         
-        {signupCode && (
+        {linkingManager && (
           <div className="info-message">
-            You're signing up with a manager invitation link
+            You're joining <strong>{linkingManager.name}'s</strong> team
+            {linkingManager.agency && ` at ${linkingManager.agency}`}
+          </div>
+        )}
+
+        {showLinkOption && (
+          <div className="link-option-card">
+            <p><strong>Already have an account?</strong></p>
+            <button onClick={handleLinkAccount} className="btn-secondary" style={{width: '100%', marginBottom: '16px'}}>
+              Link My Existing Account
+            </button>
+            <p style={{textAlign: 'center', color: '#666', fontSize: '14px', margin: '16px 0'}}>
+              — or create a new account below —
+            </p>
           </div>
         )}
         
