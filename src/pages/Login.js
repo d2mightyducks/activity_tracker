@@ -62,7 +62,9 @@ function Login() {
         </form>
 
         <div className="auth-links">
-          <p>Don't have an account? <Link to="/signup">Sign up as Agent</Link></p>
+          <p>
+            <strong>New agent?</strong> <Link to="/signup" className="signup-link-prominent">Sign up here</Link>
+          </p>
         </div>
       </div>
     </div>
