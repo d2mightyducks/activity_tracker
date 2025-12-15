@@ -5,33 +5,18 @@ import './Modal.css';
 
 function AgentSettings({ onClose, onSave }) {
   const { profile } = useAuth();
-  const [managers, setManagers] = useState([]);
-  const [selectedManager, setSelectedManager] = useState('');
   const [currentManager, setCurrentManager] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchManagers();
-    // Set the selected manager after profile loads
     if (profile.manager_id) {
-      setSelectedManager(profile.manager_id);
       fetchCurrentManager();
+    } else {
+      setLoading(false);
     }
   }, [profile.manager_id]);
-
-  const fetchManagers = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, agency_name')
-      .eq('role', 'manager')
-      .order('full_name');
-
-    if (data && !error) {
-      setManagers(data);
-    }
-  };
 
   const fetchCurrentManager = async () => {
     const { data, error } = await supabase
@@ -43,31 +28,47 @@ function AgentSettings({ onClose, onSave }) {
     if (data && !error) {
       setCurrentManager(data);
     }
+    setLoading(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleUnlink = async () => {
+    if (!window.confirm('Are you sure you want to unlink from this agency? You will become an independent agent.')) {
+      return;
+    }
+
     setError('');
     setSuccess('');
-    setSaving(true);
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ 
-        manager_id: selectedManager || null
-      })
+      .update({ manager_id: null })
       .eq('id', profile.id);
 
     if (updateError) {
       setError(updateError.message);
-      setSaving(false);
     } else {
-      setSuccess('Manager updated successfully!');
+      setSuccess('Successfully unlinked from agency!');
       setTimeout(() => {
         onSave();
       }, 1500);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="modal-overlay" onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Account Settings</h2>
+            <button onClick={onClose} className="close-btn">&times;</button>
+          </div>
+          <div style={{ padding: '24px', textAlign: 'center' }}>Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="modal-overlay" onMouseDown={(e) => {
@@ -82,7 +83,7 @@ function AgentSettings({ onClose, onSave }) {
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+        <div style={{ padding: '24px' }}>
           <div className="form-group">
             <label>Your Name</label>
             <input
@@ -103,37 +104,43 @@ function AgentSettings({ onClose, onSave }) {
             />
           </div>
 
-          {currentManager && (
-            <div className="info-message">
-              Currently managed by: <strong>{currentManager.full_name}</strong>
-              {currentManager.agency_name && ` at ${currentManager.agency_name}`}
-            </div>
-          )}
+          <div style={{ marginTop: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '12px', fontWeight: 600, color: '#333' }}>
+              Linked Agency
+            </label>
 
-          <div className="form-group">
-            <label>Change Manager</label>
-            <select
-              value={selectedManager}
-              onChange={(e) => setSelectedManager(e.target.value)}
-            >
-              <option value="">Independent Agent (No Manager)</option>
-              {managers.map(manager => (
-                <option key={manager.id} value={manager.id}>
-                  {manager.full_name} {manager.agency_name ? `- ${manager.agency_name}` : ''}
-                </option>
-              ))}
-            </select>
+            {currentManager ? (
+              <div className="linked-agency-card">
+                <div className="agency-info">
+                  <div className="manager-name">{currentManager.full_name}</div>
+                  {currentManager.agency_name && (
+                    <div className="agency-name">{currentManager.agency_name}</div>
+                  )}
+                </div>
+                <button 
+                  onClick={handleUnlink}
+                  className="btn-unlink"
+                  type="button"
+                >
+                  🗑️ Unlink Agency
+                </button>
+              </div>
+            ) : (
+              <div className="info-message">
+                <strong>No Linked Agency</strong>
+                <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
+                  You are currently an independent agent.
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving} className="btn-primary">
-              {saving ? 'Saving...' : 'Save Changes'}
+          <div style={{ marginTop: '24px', textAlign: 'right' }}>
+            <button onClick={onClose} className="btn-secondary">
+              Close
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
