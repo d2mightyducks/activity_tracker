@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../AuthContext';
+import './Modal.css';
 
-function AccountSettings({ user }) {
+function AccountSettings({ onClose, onSave }) {
+  const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -12,8 +15,10 @@ function AccountSettings({ user }) {
   });
 
   useEffect(() => {
-    loadUserData();
-  }, [user.id]);
+    if (profile) {
+      loadUserData();
+    }
+  }, [profile]);
 
   async function loadUserData() {
     try {
@@ -22,7 +27,7 @@ function AccountSettings({ user }) {
       const { data, error } = await supabase
         .from('users')
         .select('full_name, email, agency_name')
-        .eq('id', user.id)
+        .eq('id', profile.id)
         .single();
 
       if (error) throw error;
@@ -52,12 +57,15 @@ function AccountSettings({ user }) {
           full_name: formData.full_name,
           agency_name: formData.agency_name || null
         })
-        .eq('id', user.id);
+        .eq('id', profile.id);
 
       if (error) throw error;
 
       setMessage('✅ Settings saved successfully!');
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => {
+        setMessage('');
+        if (onSave) onSave();
+      }, 1500);
     } catch (error) {
       console.error('Error saving settings:', error);
       setMessage('❌ Error saving settings');
@@ -72,17 +80,26 @@ function AccountSettings({ user }) {
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div>Loading account settings...</div>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div style={{ padding: '40px', textAlign: 'center' }}>
+            <div>Loading account settings...</div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-      <h2 style={{ marginBottom: '24px' }}>Account Settings</h2>
-
-      <form onSubmit={handleSubmit}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Account Settings</h2>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+        
+        <div style={{ padding: '20px' }}>
+          <form onSubmit={handleSubmit}>
         {/* Full Name */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ 
@@ -220,6 +237,8 @@ function AccountSettings({ user }) {
         >
           Sign Out
         </button>
+      </div>
+        </div>
       </div>
     </div>
   );
