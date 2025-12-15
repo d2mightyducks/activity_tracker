@@ -1,247 +1,149 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
+import { supabase } from '../supabaseClient';
 import './Modal.css';
 
-function AccountSettings({ onClose, onSave }) {
+function AgentSettings({ onClose, onSave }) {
   const { profile } = useAuth();
+  const [currentManager, setCurrentManager] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const [formData, setFormData] = useState({
-    full_name: '',
-    email: '',
-    agency_name: ''
-  });
 
   useEffect(() => {
-    if (profile) {
-      loadUserData();
-    }
-  }, [profile]);
-
-  async function loadUserData() {
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('full_name, email, agency_name')
-        .eq('id', profile.id)
-        .single();
-
-      if (error) throw error;
-
-      setFormData({
-        full_name: data.full_name || '',
-        email: data.email || '',
-        agency_name: data.agency_name || ''
-      });
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      setMessage('❌ Error loading account settings');
-    } finally {
+    if (profile.manager_id) {
+      fetchCurrentManager();
+    } else {
       setLoading(false);
     }
-  }
+  }, [profile.manager_id]);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setSaving(true);
-    setMessage('');
+  const fetchCurrentManager = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('full_name, agency_name')
+      .eq('id', profile.manager_id)
+      .single();
 
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          full_name: formData.full_name,
-          agency_name: formData.agency_name || null
-        })
-        .eq('id', profile.id);
-
-      if (error) throw error;
-
-      setMessage('✅ Settings saved successfully!');
-      setTimeout(() => {
-        setMessage('');
-        if (onSave) onSave();
-      }, 1500);
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      setMessage('❌ Error saving settings');
-    } finally {
-      setSaving(false);
+    if (data && !error) {
+      setCurrentManager(data);
     }
-  }
+    setLoading(false);
+  };
 
-  function handleChange(field, value) {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  }
+  const handleUnlink = async () => {
+    if (!window.confirm('Are you sure you want to unlink from this agency? You will become an independent agent.')) {
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ manager_id: null })
+      .eq('id', profile.id);
+
+    if (updateError) {
+      setError(updateError.message);
+    } else {
+      setSuccess('Successfully unlinked from agency!');
+      setTimeout(() => {
+        onSave();
+      }, 1500);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-overlay" onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div style={{ padding: '40px', textAlign: 'center' }}>
-            <div>Loading account settings...</div>
+          <div className="modal-header">
+            <h2>Account Settings</h2>
+            <button onClick={onClose} className="close-btn">&times;</button>
           </div>
+          <div style={{ padding: '24px', textAlign: 'center' }}>Loading...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onMouseDown={(e) => {
+      if (e.target === e.currentTarget) onClose();
+    }}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Account Settings</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
-        </div>
-        
-        <div style={{ padding: '20px' }}>
-          <form onSubmit={handleSubmit}>
-        {/* Full Name */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '8px', 
-            fontWeight: '500',
-            color: '#333'
-          }}>
-            Full Name
-          </label>
-          <input
-            type="text"
-            value={formData.full_name}
-            onChange={(e) => handleChange('full_name', e.target.value)}
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '6px',
-              fontSize: '16px'
-            }}
-            required
-          />
+          <button onClick={onClose} className="close-btn">&times;</button>
         </div>
 
-        {/* Email (read-only) */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '8px', 
-            fontWeight: '500',
-            color: '#333'
-          }}>
-            Email
-          </label>
-          <input
-            type="email"
-            value={formData.email}
-            disabled
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '6px',
-              fontSize: '16px',
-              backgroundColor: '#f5f5f5',
-              color: '#666'
-            }}
-          />
-          <small style={{ color: '#666', fontSize: '14px' }}>
-            Email cannot be changed
-          </small>
-        </div>
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
 
-        {/* Linked Agency */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '8px', 
-            fontWeight: '500',
-            color: '#333'
-          }}>
-            Linked Agency
-          </label>
-          <input
-            type="text"
-            value={formData.agency_name}
-            onChange={(e) => handleChange('agency_name', e.target.value)}
-            placeholder="No Linked Agency"
-            style={{
-              width: '100%',
-              padding: '10px',
-              border: '1px solid #ddd',
-              borderRadius: '6px',
-              fontSize: '16px'
-            }}
-          />
-          <small style={{ color: '#666', fontSize: '14px' }}>
-            {formData.agency_name 
-              ? `Currently linked to: ${formData.agency_name}`
-              : 'No linked agency'}
-          </small>
-        </div>
-
-        {/* Save Button */}
-        <button
-          type="submit"
-          disabled={saving}
-          style={{
-            padding: '12px 32px',
-            backgroundColor: saving ? '#ccc' : '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '16px',
-            fontWeight: '500',
-            cursor: saving ? 'not-allowed' : 'pointer',
-            marginTop: '8px'
-          }}
-        >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
-
-        {/* Success/Error Message */}
-        {message && (
-          <div style={{
-            marginTop: '16px',
-            padding: '12px',
-            backgroundColor: message.startsWith('✅') ? '#d4edda' : '#f8d7da',
-            border: `1px solid ${message.startsWith('✅') ? '#c3e6cb' : '#f5c6cb'}`,
-            borderRadius: '6px',
-            color: message.startsWith('✅') ? '#155724' : '#721c24'
-          }}>
-            {message}
+        <div style={{ padding: '24px' }}>
+          <div className="form-group">
+            <label>Your Name</label>
+            <input
+              type="text"
+              value={profile.full_name}
+              disabled
+              style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+            />
           </div>
-        )}
-      </form>
 
-      {/* Sign Out Button */}
-      <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #e0e0e0' }}>
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            window.location.reload();
-          }}
-          style={{
-            padding: '10px 24px',
-            backgroundColor: 'transparent',
-            color: '#dc3545',
-            border: '1px solid #dc3545',
-            borderRadius: '6px',
-            fontSize: '14px',
-            cursor: 'pointer'
-          }}
-        >
-          Sign Out
-        </button>
-      </div>
+          <div className="form-group">
+            <label>Your Email</label>
+            <input
+              type="email"
+              value={profile.email}
+              disabled
+              style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+            />
+          </div>
+
+          <div style={{ marginTop: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '12px', fontWeight: 600, color: '#333' }}>
+              Linked Agency
+            </label>
+
+            {currentManager ? (
+              <div className="linked-agency-card">
+                <div className="agency-info">
+                  <div className="manager-name">{currentManager.full_name}</div>
+                  {currentManager.agency_name && (
+                    <div className="agency-name">{currentManager.agency_name}</div>
+                  )}
+                </div>
+                <button 
+                  onClick={handleUnlink}
+                  className="btn-unlink"
+                  type="button"
+                >
+                  🗑️ Unlink Agency
+                </button>
+              </div>
+            ) : (
+              <div className="info-message">
+                <strong>No Linked Agency</strong>
+                <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
+                  You are currently an independent agent.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop: '24px', textAlign: 'right' }}>
+            <button onClick={onClose} className="btn-secondary">
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default AccountSettings;
+export default AgentSettings;
