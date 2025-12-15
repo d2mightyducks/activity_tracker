@@ -31,6 +31,7 @@ function AgentSettings({ onClose, onSave }) {
     setLoading(false);
   };
 
+  
   const handleUnlink = async () => {
     if (!window.confirm('Are you sure you want to unlink from this agency? You will become an independent agent.')) {
       return;
@@ -124,14 +125,9 @@ function AgentSettings({ onClose, onSave }) {
                 >
                   🗑️ Unlink Agency
                 </button>
-              </div>
-            ) : (
               <div className="info-message">
-                <strong>No Linked Agency</strong>
-                <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
-                  You are currently an independent agent.
-                </p>
-              </div>
+  <strong>No Linked Agency</strong>
+</div>
             )}
           </div>
 
