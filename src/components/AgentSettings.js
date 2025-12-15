@@ -11,33 +11,22 @@ function AgentSettings({ onClose, onSave }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('AgentSettings - profile:', profile);
-    console.log('AgentSettings - manager_id:', profile?.manager_id);
-    
     if (profile?.manager_id) {
       fetchCurrentManager();
     } else {
-      console.log('No manager_id found on profile');
       setLoading(false);
     }
   }, [profile?.manager_id]);
 
   const fetchCurrentManager = async () => {
-    console.log('Fetching manager with id:', profile.manager_id);
-    
     const { data, error } = await supabase
       .from('profiles')
       .select('full_name, agency_name')
       .eq('id', profile.manager_id)
       .single();
 
-    console.log('Manager fetch result - data:', data);
-    console.log('Manager fetch result - error:', error);
-
     if (data && !error) {
       setCurrentManager(data);
-    } else if (error) {
-      console.error('Error fetching manager:', error);
     }
     setLoading(false);
   };
@@ -119,11 +108,6 @@ function AgentSettings({ onClose, onSave }) {
             <label style={{ display: 'block', marginBottom: '12px', fontWeight: 600, color: '#333' }}>
               Linked Agency
             </label>
-
-            {/* Debug info */}
-            <div style={{ fontSize: '12px', color: '#666', marginBottom: '12px', padding: '8px', background: '#f0f0f0', borderRadius: '4px' }}>
-              DEBUG: manager_id = {profile?.manager_id || 'null'} | currentManager = {currentManager ? 'found' : 'null'}
-            </div>
 
             {currentManager ? (
               <div className="linked-agency-card">
